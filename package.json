@@ -1,0 +1,32 @@
+{
+  "dependencies": {
+    "azure-devops-extension-api": "^1.158.0",
+    "azure-devops-extension-sdk": "^2.0.11"
+  },
+  "name": "azure-devops-workitem-doc-generator",
+  "description": "In order to debug you have to run a local web server with https",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "snowpack dev",
+    "build-remove": "snowpack build",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jdavis-etdx/azure-devops-workitem-doc-generator.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jdavis-etdx/azure-devops-workitem-doc-generator/issues"
+  },
+  "homepage": "https://github.com/jdavis-etdx/azure-devops-workitem-doc-generator#readme",
+  "devDependencies": {
+    "webpack-cli": "^4.8.0",
+    "express": "^4.17.1",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.4.3"
+  }
+}
