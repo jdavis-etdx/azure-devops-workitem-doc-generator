@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "work-item-document-generator",
     "publisher": "JasonDavis",
-    "version": "1.0.10",
+    "version": "1.0.18",
     "name": "Work Item Document Generator",
     "description": "A sample Visual Studio Services extension",
     "public": false,
@@ -15,17 +15,14 @@
     ],
     "contributions": [
         {
-            "id": "myAction",
-            "type": "ms.vss-web.action",
-            "description": "Run in Hello hub action",
-            "targets": [
-                "ms.vss-work-web.work-item-query-menu"
-            ],
+            "id": "panel-content",
+            "type": "ms.vss-web.tab",
+            "description": "The panel displaying a preview of the results",
+            "targets": ["ms.vss-work-web.query-tabs"],
             "properties": {
-                "text": "Run in Hello hub",
-                "title": "Run in Hello hub",
-                "groupId": "actions",
-                "uri": "action.html"
+                "uri": "panel.html",
+                "title": "Print Results",
+                "name": "Print Results"
             }
         }
     ],
@@ -35,7 +32,7 @@
             "addressable":true
         },
         {
-            "path": "public/action.html",
+            "path": "public",
             "addressable": true
         }
     ]
