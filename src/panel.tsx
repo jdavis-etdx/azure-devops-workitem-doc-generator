@@ -1,12 +1,9 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
-import * as SDK from "azure-devops-extension-sdk";
-//{init, resize, ready, getConfiguration} from "azure-devops-extension-sdk";
 import parse from 'html-react-parser'
-//import { CommonServiceIds, IHostPageLayoutService } from "azure-devops-extension-api";
+import * as SDK from "azure-devops-extension-sdk";
 import * as Api from "azure-devops-extension-api"
 import * as WI from "azure-devops-extension-api/WorkItemTracking";
-import { query } from "express";
+
 
 // import { Button } from "azure-devops-ui/Button";
 // import { ButtonGroup } from "azure-devops-ui/ButtonGroup";
@@ -109,9 +106,9 @@ const WorkItem = ({item}:{item:WorkItemProps | any}) => {
                 <ul>
                 {item.relationships.map((relItem:any) => {
                     return (
-                        <li>
-                                <h3>{relItem.fields['System.WorkItemType']} {relItem.id}: {relItem.fields['System.Title']}</h3>
-                                <p>{relItem.fields['System.Description'] && parse(relItem.fields['System.Description'])}</p>
+                        <li key={relItem.id}>
+                            <h3>{relItem.fields['System.WorkItemType']} {relItem.id}: {relItem.fields['System.Title']}</h3>
+                            <>{relItem.fields['System.Description'] && parse(relItem.fields['System.Description'])}</>
                         </li>
                     )
                 })}
@@ -124,7 +121,6 @@ const WorkItem = ({item}:{item:WorkItemProps | any}) => {
 }
 
 export const Panel = () => {
-    //return <div>Hello WOrld</div>
     const [workItems, setWorkItems] = React.useState<any>(null)
 
     React.useEffect( () => {
@@ -216,5 +212,3 @@ export const Panel = () => {
 }
 
 export default Panel
-
-//ReactDOM.render(<PanelContent />, document.getElementById("root"));

@@ -1,10 +1,9 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
-  entry: {
-    panel: './src/main.tsx'
-  },
+  entry: './src/main.tsx',
   watch: true,
   devtool: 'inline-source-map',
   module: {
@@ -17,13 +16,10 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'],
-    alias: {
-        "azure-devops-extension-sdk": path.resolve("node_modules/azure-devops-extension-sdk")
-    }
+    extensions: ['.tsx', '.ts', '.js']
   },
   output: {
-    filename: '[name].js',
+    filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
   devServer: {
@@ -34,4 +30,5 @@ module.exports = {
     port: 3000,
     https: true
   },
+  plugins: [new HtmlWebpackPlugin({template: './src/index.html'})]
 }
