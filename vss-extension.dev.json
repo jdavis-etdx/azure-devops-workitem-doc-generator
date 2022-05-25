@@ -1,6 +1,6 @@
 {
     "id": "work-item-document-generator-dev",
-    "version": "1.0.20",
+    "version": "1.0.31",
     "name": "DEV Work Item Document Generator",
     "public": false,
     "baseUri": "https://localhost:3000"

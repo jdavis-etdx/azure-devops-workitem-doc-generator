@@ -1,9 +1,12 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 import * as SDK from "azure-devops-extension-sdk";
+//{init, resize, ready, getConfiguration} from "azure-devops-extension-sdk";
 import parse from 'html-react-parser'
-import { CommonServiceIds, getClient, IHostPageLayoutService } from "azure-devops-extension-api";
-import { WorkItemTrackingRestClient } from "azure-devops-extension-api/WorkItemTracking";
+//import { CommonServiceIds, IHostPageLayoutService } from "azure-devops-extension-api";
+import * as Api from "azure-devops-extension-api"
+import * as WI from "azure-devops-extension-api/WorkItemTracking";
+import { query } from "express";
 
 // import { Button } from "azure-devops-ui/Button";
 // import { ButtonGroup } from "azure-devops-ui/ButtonGroup";
@@ -85,33 +88,103 @@ import { WorkItemTrackingRestClient } from "azure-devops-extension-api/WorkItemT
 //     }
 // }
 
-const WorkItem = ({item}) => {
+
+interface WorkItemProps {
+    id: string,
+    fields: [any]
+}
+
+const WorkItem = ({item}:{item:WorkItemProps | any}) => {
     return (
         <div>
-            <div><h2><span style={{fontWeight: 'bold'}}>{item.fields['System.WorkItemType']} {item.id}</span>: {item.fields['System.Title']}</h2></div>
-            <hr/>
+            <div><h2>{item.fields['System.WorkItemType']} {item.id}: {item.fields['System.Title']}</h2></div>
             <div>{item.fields['System.Description'] && parse(item.fields['System.Description'])}</div>
+            <div>{item.fields['Custom.RequirementCriteria'] && parse(item.fields['Custom.RequirementCriteria'])}</div>
+            {/* <div><hr /><h3><i>Rationale Comments</i></h3></div> */}
+            {/* <div>{item.fields['Custom.Rationale_Comments'] && parse(item.fields['Custom.Rationale_Comments'])}</div> */}
+            
+            {(item.relationships.length > 0)
+            ? <div>
+                <h3>Relationships</h3>
+                <ul>
+                {item.relationships.map((relItem:any) => {
+                    return (
+                        <li>
+                                <h3>{relItem.fields['System.WorkItemType']} {relItem.id}: {relItem.fields['System.Title']}</h3>
+                                <p>{relItem.fields['System.Description'] && parse(relItem.fields['System.Description'])}</p>
+                        </li>
+                    )
+                })}
+                </ul>
+            </div>
+            : <></>}
+            <hr/>
         </div>
     )
 }
 
-const PanelContent = () => {
-    const [workItems, setWorkItems] = React.useState(null)
+export const Panel = () => {
+    //return <div>Hello WOrld</div>
+    const [workItems, setWorkItems] = React.useState<any>(null)
 
     React.useEffect( () => {
+        console.log(SDK);
         SDK.init();
         
+        //SDK.ready().then(async () => {
         SDK.ready().then(async () => {
             // The configuration contains the work items that were returned by the query 
+            // const config = SDK.getConfiguration();
             const config = SDK.getConfiguration();
-            const client = getClient(WorkItemTrackingRestClient)
-            const configurationItems = await client.queryByWiql({query: config.query.wiql}).then(result => {
-                return (result.workItemRelations && result.workItemRelations.map(wi => wi.target.id)) || []
+            const client = Api.getClient(WI.WorkItemTrackingRestClient)
+            console.log(config)
+            //const configurationItems = await client.queryByWiql({query: config.query.wiql}).then(result => {
+            const configurationItems = await client.queryById(config.query.id).then(result => {
+                console.log(`Query returned ${result.workItemRelations.length} items`)
+                console.log(result)
+                return (result.workItemRelations && result.workItemRelations) || []
+                //return (result.workItems && result.workItems.map(wi => wi.id) ) || []
             })
-            .then(wids => wids && wids.length > 0 ? client.getWorkItems(wids) : []);
+            .then(async (queryWorkItems) => {
+                if(queryWorkItems && queryWorkItems.length > 0) {
+                    const itemCount = queryWorkItems.length
+                    let batchIndex = 0
+                    const batchSize = 200
+                    const itemCache: {[key:number]: any}= {}
 
-            console.dir(configurationItems)
-            setWorkItems(configurationItems)
+                    while (itemCount > batchIndex){
+                        const batch = queryWorkItems.map(qWI => qWI.target.id).slice(batchIndex, batchIndex + batchSize)
+                        const newItems = await client.getWorkItems(batch)
+
+                        newItems.map(item => {
+                            itemCache[item.id] = item
+                        })
+                        //itemCache.push(...newItems)
+                        batchIndex += batchSize
+                    }
+
+                    const heirarchyList:{[key:number]: any} = {}
+
+                    queryWorkItems.map(item => {
+                        const {source, target} = item
+                        if(source) {
+                            if(heirarchyList[source.id]){
+                                //const currentItem = heirarchyList[source.id]
+                                heirarchyList[source.id].relationships.push(itemCache[target.id])
+                            } else {
+                                heirarchyList[source.id] = {relationships: [itemCache[target.id]]}
+                            }
+                        } else {
+                            heirarchyList[target.id] = {...itemCache[target.id], relationships: []}
+                        }
+                    })
+                    console.dir(heirarchyList)
+                    setWorkItems(Object.values(heirarchyList))
+                }
+                
+            });
+
+            
 
             if (config.dialog) {
                 // Give the host frame the size of our dialog content so that the dialog can be sized appropriately.
@@ -123,6 +196,7 @@ const PanelContent = () => {
                 //    // we are visible in this callback.
                 //    SDK.resize();
                 // });
+                //SDK.resize(800, 800);
                 SDK.resize(800, 800);
             }
         });
@@ -133,11 +207,14 @@ const PanelContent = () => {
     if(workItems.length < 1) return <div>Unable to Create Results </div>
     return (
         <div>
+            <h1>Items</h1>
             <ul style={{listStyleType: 'none'}}>
-                {workItems.map((item, index) => <li key={index}><WorkItem item={item} /></li>)}
+                {workItems.map((item:any, index:number) => <li key={index}><WorkItem item={item} /></li>)}
             </ul>
         </div>
     )
 }
 
-ReactDOM.render(<PanelContent />, document.getElementById("root"));
+export default Panel
+
+//ReactDOM.render(<PanelContent />, document.getElementById("root"));

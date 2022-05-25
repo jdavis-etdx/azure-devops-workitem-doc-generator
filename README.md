@@ -4,7 +4,7 @@ This extension adds a "Print Results" panel to the Query Results page that nicel
 
 ## Debugging
 In order to debug you have to run a local web server with https using the following command:
-`npm run dev`
+`npm run dev` -- --https
 To create a SSL certificate for localhost run the following commands:
 ```
 openssl req -x509 -newkey rsa:2048 -keyout keytmp.pem -out cert.pem -days 365
